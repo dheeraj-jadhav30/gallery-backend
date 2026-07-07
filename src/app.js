@@ -17,8 +17,17 @@ const upload = multer({
 //create-post route
 app.post('/create-post',upload.single('image') , async (req,res) => {
 
-    const {caption} = req.body 
-    const buffer = req.file.buffer 
+   
+
+    if (!req.file) {
+    return res.status(400).json({
+        success: false,
+        message: "Image is required"
+    });
+}
+
+    const { caption } = req.body;
+    const buffer = req.file.buffer;
 
     const result = await uploadImage(buffer) 
     console.log(result) 
@@ -40,23 +49,22 @@ app.post('/create-post',upload.single('image') , async (req,res) => {
 })
 
 // get-posts route
-app.get('/posts' , async (req,res) => {
+app.get("/posts", async (req, res) => {
+    try {
+        const posts = await postModel.find();
 
-        const posts = await postModel.find()
+        res.status(200).json({
+            success: true,
+            posts
+        });
 
-        // console.log(posts)
-
-        if(posts.length > 0){
-            return res.status(200).json({
-                msg:"posts fetched successfully",
-                posts
-            })
-        }else{
-            return res.status(404).json({
-                msg:"no posts found"
-            })
-        }
-})
+    } catch (err) {
+        res.status(500).json({
+            success: false,
+            message: err.message
+        });
+    }
+});
 
 // singgle post route
 app.get('/posts/:id',async (req,res) => {
